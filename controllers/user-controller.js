@@ -83,7 +83,7 @@ const login = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const appUserId = req.params.id;
-    const findusers = await User.findOne(appUserId);
+    const findusers = await User.findOne({ appUserId: req.params.id });
     if (findusers) {
       res.status(200).json({ data: findusers });
     } else res.status(500);
@@ -92,4 +92,28 @@ const getUsers = async (req, res) => {
     res.status(500);
   }
 };
-module.exports = { createUser, login, getUsers };
+
+const updateRole = async (req, res) => {
+  try {
+    const appUserId = req.params.id;
+    const user = await User.findOne({ appUserId });
+
+    if (user) {
+      // Update the user's role
+      user.role = req.body.role;
+
+      // Save the updated user document
+      await user.save();
+
+      // Optionally, you can send a response indicating the success of the update
+      res.status(200).json({ message: "User role updated successfully" });
+    } else {
+      // Handle the case where no user with the specified appUserId was found
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+  }
+};
+module.exports = { createUser, login, getUsers, updateRole };

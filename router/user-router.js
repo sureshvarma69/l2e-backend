@@ -4,6 +4,7 @@ const {
   createUser,
   login,
   getUsers,
+  updateRole,
 } = require("../controllers/user-controller");
 const router = express.Router();
 const { verifyToken, decodeToken } = require("../middlewares/auth");
@@ -12,6 +13,7 @@ const { verifyToken, decodeToken } = require("../middlewares/auth");
 
 router.post("/signup", createUser);
 router.post("/login", login);
-router.get("/users", verifyToken, getUsers);
+router.get("/users/:id", verifyToken, getUsers);
+router.post("/update/role/:id", verifyToken, updateRole);
 router.get("/auth", decodeToken);
 module.exports = router;
