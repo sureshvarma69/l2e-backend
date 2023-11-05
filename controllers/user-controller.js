@@ -64,14 +64,14 @@ const login = async (req, res) => {
           },
           process.env.JWT_SECRET,
           {
-            expiresIn: "1h", // Token expiration time
+            expiresIn: "24h", // Token expiration time
           },
         );
         res.status(201).json({ token });
       } else {
         console.log("Password is incorrect");
         // Deny access
-        res.status(500).json({ error: "Invalid password" });
+        res.status(204).json({ error: "Invalid password" });
       }
     });
   } catch (e) {

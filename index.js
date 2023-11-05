@@ -2,10 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
-const jwt = require("jsonwebtoken");
 const cors = require("cors");
 // routes
 const UserRoutes = require("./router/user-router");
+const UserProfileRoutes = require("./router/userProfileRouter");
+const CompanyRoutes = require("./router/companyRouter");
 
 const app = express();
 const port = process.env.PORT || 1221;
@@ -32,4 +33,6 @@ app.get("/", (req, res) => {
   res.send("L2E play Api");
 });
 
-app.use("/api/v1", UserRoutes);
+app.use("/api/v1",UserRoutes);
+app.use("/api/v1",UserProfileRoutes);
+app.use("/api/v1", CompanyRoutes)
