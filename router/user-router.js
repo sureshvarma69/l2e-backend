@@ -16,4 +16,6 @@ router.post("/login", login);
 router.get("/users/:id", verifyToken, getUsers);
 router.post("/update/role/:id", verifyToken, updateRole);
 router.get("/auth", decodeToken);
+
+
 module.exports = router;
