@@ -9,6 +9,8 @@ const UserRoutes = require("./router/user-router");
 const UserProfileRoutes = require("./router/userProfileRouter");
 const CompanyRoutes = require("./router/companyRouter");
 const UtilsRoutes = require("./router/utilsRouter");
+const JobRoutes = require("./router/jobRouter");
+
 const app = express();
 const port = process.env.PORT || 1221;
 
@@ -42,3 +44,4 @@ app.use("/api/v1",UserRoutes);
 app.use("/api/v1",UserProfileRoutes);
 app.use("/api/v1", CompanyRoutes)
 app.use("/api/v1",UtilsRoutes)
+app.use("/api/v1",JobRoutes)
