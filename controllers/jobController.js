@@ -65,10 +65,21 @@ const createOrUpdateJob = async (req, res) => {
     }
 };
 
-const getAllActiveJobs = async (req,res)=>{
+const getPostedJobs = async (req,res)=>{
     try{
         const id = req.params.id
         const activeJobs = await Job.find({status:"ACTIVE","metaInfo.createdBy":id})
+        res.status(201).json(activeJobs)
+    }catch (e) {
+        console.error("Error while getting jobs list:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+const getAllActiveJobs = async (req,res)=>{
+    try{
+        const id = req.params.id
+        const activeJobs = await Job.find({status:"ACTIVE"})
         res.status(201).json(activeJobs)
     }catch (e) {
         console.error("Error while getting jobs list:", e);
@@ -87,10 +98,80 @@ const getJobsByJobId = async (req,res)=>{
     }
 }
 
+const applyJob = async (req,res)=>{
+    try{
+        const {
+            jobId,
+            userId
+        } = req.body
+        const apply = await Job.updateOne(
+            {jobId: jobId},
+            { $push: { applicants: userId } }
+        );
+        res.status(201).json({"message":"Job applied"})
+    }catch (e) {
+        console.error("Error updating job:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+const addToFav = async (req,res)=>{
+    try{
+        const {
+            jobId,
+            userId
+        } = req.body
+        const resp = await Job.updateOne(
+            {jobId: jobId},
+            { $push: { favourites: userId } }
+        );
+        res.status(201).json({"message":"Job applied"})
+    }catch (e) {
+        console.error("Error updating job:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+const removeFav = async (req,res)=>{
+    try{
+        const {
+            jobId,
+            userId
+        } = req.body
+        const resp = await Job.updateOne(
+            {jobId: jobId},
+            { $pull: { favourites: userId } }
+        );
+        res.status(201).json({"message":"Job applied"})
+    }catch (e) {
+        console.error("Error updating job:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+const removeJobApplication = async (req,res)=>{
+    try{
+        const {
+            jobId,
+            userId
+        } = req.body
+        const resp = await Job.updateOne(
+            {jobId: jobId},
+            { $pull: { applicants: userId } }
+        );
+        res.status(201).json({"message":"Job Application reverted"})
+    }catch (e) {
+        console.error("Error updating job:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
 module.exports={
     createOrUpdateJob,
+    getPostedJobs,
     getAllActiveJobs,
-    getJobsByJobId
+    getJobsByJobId,
+    addToFav,
+    removeFav,
+    applyJob,removeJobApplication
 }
 
 
