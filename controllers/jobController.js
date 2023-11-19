@@ -1,8 +1,10 @@
 const Job = require("../models/jobModel");
+const UserDetails = require("../models/userProfileModel")
 const moment = require("moment");
 const crypto = require('crypto');
-
+const Application = require("../models/jobApplications")
 const uuid = crypto.randomUUID();
+
 const createOrUpdateJob = async (req, res) => {
     try{
         const {
@@ -65,6 +67,31 @@ const createOrUpdateJob = async (req, res) => {
     }
 };
 
+
+const createJobApplication = async (req,res)=>{
+    try{
+        const {
+            jobId,userId
+        } = req.body
+        const userDetails = await UserDetails.findOne({appUserId:userId});
+        if(!userDetails) return res.status(204).json({"message":"Illegal Applicant"});
+
+        const newJobApplication = new Application({
+            jobId,
+            applicationId:`application_id_`+uuid,
+            userDetails
+        });
+        await newJobApplication.save();
+        return res.status(200).json({
+            message: "Job Applied successfully",
+            job: newJobApplication,
+        });
+    }catch (e) {
+        console.error("Error creating/updating Application:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
 const getPostedJobs = async (req,res)=>{
     try{
         const id = req.params.id
@@ -79,8 +106,26 @@ const getPostedJobs = async (req,res)=>{
 const getAllActiveJobs = async (req,res)=>{
     try{
         const id = req.params.id
-        const activeJobs = await Job.find({status:"ACTIVE"})
-        res.status(201).json(activeJobs)
+        const activeJobsWithAppUsers = await Job.aggregate([
+            {
+                $match: { status: "ACTIVE" },
+            },
+            {
+                $lookup: {
+                    from: "applications", // The name of the other collection (case-sensitive)
+                    localField: "jobId", // Field from the current collection
+                    foreignField: "jobId", // Field from the other collection
+                    as: "appliedUsers",
+                },
+            },
+        ]);
+
+        console.log(activeJobsWithAppUsers);
+
+
+
+
+        res.status(201).json(activeJobsWithAppUsers)
     }catch (e) {
         console.error("Error while getting jobs list:", e);
         res.status(500).json({ error: "Internal server error" });
@@ -91,6 +136,17 @@ const getJobsByJobId = async (req,res)=>{
     try{
         const id = req.params.jobId
         const activeJobs = await Job.findOne({jobId:id})
+        res.status(201).json(activeJobs)
+    }catch (e) {
+        console.error("Error while getting jobs list:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+const getApplicantsByJobId = async (req,res)=>{
+    try{
+        const id = req.params.jobId
+        const activeJobs = await Application.find({jobId:id})
         res.status(201).json(activeJobs)
     }catch (e) {
         console.error("Error while getting jobs list:", e);
@@ -148,6 +204,7 @@ const removeFav = async (req,res)=>{
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
 const removeJobApplication = async (req,res)=>{
     try{
         const {
@@ -171,7 +228,9 @@ module.exports={
     getJobsByJobId,
     addToFav,
     removeFav,
-    applyJob,removeJobApplication
+    applyJob,removeJobApplication,
+    createJobApplication,
+    getApplicantsByJobId
 }
 
 

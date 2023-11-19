@@ -19,7 +19,14 @@ const jobSchema = new Schema({
     jobType:String,
     jobDescription:String,
     applicants:[String],// pass user Ids who Applied for this Job
+    applied:[String],
+    screening:[String],
+    offered:[String],
+    hired:[String],
+    rejected:[String],
+    interview:[String],
     favourites:[String],
+    appliedUsers:[String],
     status:{
         type:String,
         default:"ACTIVE"
