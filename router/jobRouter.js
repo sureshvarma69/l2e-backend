@@ -2,7 +2,9 @@ const express = require("express");
 const { createOrUpdateJob,getPostedJobs,getJobsByJobId, getAllActiveJobs, applyJob, addToFav, removeJobApplication,
     removeFav,
     createJobApplication,
-    getApplicantsByJobId
+    getApplicantsByJobId,
+    updateJobApplicationStatus,
+    getMyApplications
 } = require("../controllers/jobController");
 const router = express.Router();
 const { verifyToken } = require("../middlewares/auth");
@@ -18,4 +20,6 @@ router.post("/job/revert",verifyToken,removeJobApplication)
 router.post("/job/unfav",verifyToken,removeFav)
 
 router.post("/job/apply",verifyToken,createJobApplication)
+router.post("/job/application/status",verifyToken,updateJobApplicationStatus)
+router.get("/job/myApplications/:appUserId",verifyToken,getMyApplications)
 module.exports = router;

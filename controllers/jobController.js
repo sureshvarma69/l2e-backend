@@ -79,7 +79,16 @@ const createJobApplication = async (req,res)=>{
         const newJobApplication = new Application({
             jobId,
             applicationId:`application_id_`+uuid,
-            userDetails
+            userDetails,
+            changeLog:[
+                {
+                 updatedBy:{
+                     id:userDetails?.appUserId,
+                     name:userDetails?.firstName
+                 },
+                 updateAt:moment().unix()
+                }
+            ]
         });
         await newJobApplication.save();
         return res.status(200).json({
@@ -91,6 +100,70 @@ const createJobApplication = async (req,res)=>{
         res.status(500).json({ error: "Internal server error" });
     }
 }
+
+const updateJobApplicationStatus = async (req,res) =>{
+    try{
+        const { applicationId, status,appUserId } = req.body;
+
+        const userDetails = await UserDetails.findOne({appUserId})
+        const filter = { applicationId };
+        const update = {
+            $set: {status}, // Set the new status
+            $push: {
+                changeLog: {
+                    status,
+                    updatedBy:{
+                        id:userDetails?.appUserId,
+                        name:userDetails?.firstName
+                    },
+                    updatedAt:moment().unix()
+                },
+            },
+        }
+        const updatedApplication = await Application.findOneAndUpdate(filter, update, {
+            new: true, // This option returns the modified document rather than the original
+            runValidators: true, // This option ensures that Mongoose validators are run when updating
+        });
+
+        if (!updatedApplication) {
+            return res.status(204).json({ "message": "Illegal Application id" });
+        }
+         // If the update is successful, you can send the updated document as a response
+        return res.status(200).json(updatedApplication);
+    }catch (e) {
+        console.error("Error creating/updating Application:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+const getMyApplications = async (req, res) => {
+    try {
+        const { appUserId } = req.params;
+
+        const applicationsOfUser = await Application.aggregate([
+            {
+                $match: {
+                    "userDetails.appUserId": appUserId
+                }
+            },
+            {
+                $lookup: {
+                    from: "jobs",
+                    localField: "jobId",
+                    foreignField: "jobId",
+                    as: "jobDetails"
+                }
+            }
+        ]);
+
+        console.log(applicationsOfUser);
+        res.status(200).json(applicationsOfUser);
+    } catch (e) {
+        console.error("Error while getting Applications:", e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 
 const getPostedJobs = async (req,res)=>{
     try{
@@ -121,10 +194,6 @@ const getAllActiveJobs = async (req,res)=>{
         ]);
 
         console.log(activeJobsWithAppUsers);
-
-
-
-
         res.status(201).json(activeJobsWithAppUsers)
     }catch (e) {
         console.error("Error while getting jobs list:", e);
@@ -162,7 +231,15 @@ const applyJob = async (req,res)=>{
         } = req.body
         const apply = await Job.updateOne(
             {jobId: jobId},
-            { $push: { applicants: userId } }
+            { $push: {
+                    changeLog: {
+                        updatedBy:{
+                            id:userDetails?.appUserId,
+                            name:userDetails?.firstName
+                        },
+                        updatedAt:moment().unix()
+                    },
+                } }
         );
         res.status(201).json({"message":"Job applied"})
     }catch (e) {
@@ -230,7 +307,9 @@ module.exports={
     removeFav,
     applyJob,removeJobApplication,
     createJobApplication,
-    getApplicantsByJobId
+    getApplicantsByJobId,
+    updateJobApplicationStatus,
+    getMyApplications
 }
 
 

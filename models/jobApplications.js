@@ -18,6 +18,13 @@ const applicationSchema = new Schema({
         createdBy: { type: String },
         updatedBy: { type: String }
     },
+    changeLog:[
+        {
+            updatedBy:{type:Object},
+            status:{type:String, default: "APPLIED"},
+            updatedAt: {type:Number}
+        }
+    ]
 });
 
 // Create the Application model
